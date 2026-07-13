@@ -82,18 +82,41 @@ const sanitizeHtml = (html: string) => hardenLinks(html
   .replace(/\s+on\w+=("[^"]*"|'[^']*'|[^\s>]+)/gi, '')
   .replace(/(href|src)=(['"])javascript:[\s\S]*?\2/gi, '$1="#"'))
 
+const NAMED_ENTITIES: Record<string, string> = {
+  nbsp: ' ', amp: '&', lt: '<', gt: '>', quot: '"', apos: "'",
+  auml: 'ä', Auml: 'Ä', ouml: 'ö', Ouml: 'Ö', uuml: 'ü', Uuml: 'Ü', szlig: 'ß',
+  aacute: 'á', eacute: 'é', iacute: 'í', oacute: 'ó', uacute: 'ú',
+  agrave: 'à', egrave: 'è', igrave: 'ì', ograve: 'ò', ugrave: 'ù',
+  acirc: 'â', ecirc: 'ê', icirc: 'î', ocirc: 'ô', ucirc: 'û',
+  atilde: 'ã', ntilde: 'ñ', otilde: 'õ', ccedil: 'ç',
+  hellip: '…', mdash: '—', ndash: '–', lsquo: '‘', rsquo: '’', ldquo: '“', rdquo: '”',
+  copy: '©', reg: '®', trade: '™', euro: '€', pound: '£', yen: '¥', cent: '¢', deg: '°', middot: '·', bull: '•',
+}
+
+const decodeEntities = (value: string) => value
+  .replace(/&#(\d+);/g, (_m, d) => String.fromCodePoint(parseInt(d, 10)))
+  .replace(/&#x([0-9a-f]+);/gi, (_m, h) => String.fromCodePoint(parseInt(h, 16)))
+  .replace(/&([a-zA-Z][a-zA-Z0-9]+);/g, (match, name) => NAMED_ENTITIES[name] ?? NAMED_ENTITIES[name.toLowerCase()] ?? match)
+
+const decodePlainText = (value: string) => decodeEntities(value).replace(/<[^>]+>/g, '').trim()
+
+const looksLikeHtml = (value: string) => /<\/?[a-z][a-z0-9]*(\s[^<>]*)?>/i.test(value)
+
 const formatPlainText = (raw: string) => {
   const value = raw.trim()
   if (!value) return ''
-  if (/<[a-z][\s\S]*>/i.test(value)) return sanitizeHtml(linkifyMarkdown(value))
-  return value
+  const hasEncodedTags = /&lt;\/?[a-z]/i.test(value)
+  const decoded = hasEncodedTags ? decodeEntities(value) : value
+  if (looksLikeHtml(decoded)) return sanitizeHtml(linkifyMarkdown(decodeEntities(decoded)))
+  return decodeEntities(decoded)
     .split(/\n{2,}/)
     .map((part) => `<p>${linkifyText(escapeHtml(part).replace(/\n/g, '<br />'))}</p>`)
     .join('')
 }
 
-const summaryText = (post: SitePost) => post.summary || asText(getContent(post).description) || asText(getContent(post).excerpt) || ''
-const categoryOf = (post: SitePost, fallback: string) => asText(getContent(post).category) || post.tags?.[0] || fallback
+const summaryText = (post: SitePost) => decodePlainText(post.summary || asText(getContent(post).description) || asText(getContent(post).excerpt) || '')
+const titleText = (post: SitePost) => decodePlainText(post.title || '')
+const categoryOf = (post: SitePost, fallback: string) => decodePlainText(asText(getContent(post).category) || post.tags?.[0] || fallback)
 const mapSrcFor = (post: SitePost) => {
   const address = getField(post, ['address', 'location', 'city'])
   const lat = getField(post, ['lat', 'latitude'])
@@ -137,7 +160,7 @@ function ArticleDetail({ post, related, comments }: { post: SitePost; related: S
       <article className="min-w-0 rounded-[2.7rem] border border-[var(--editable-border)] bg-[var(--detail-surface)] p-5 shadow-[0_30px_90px_rgba(15,23,42,0.09)] sm:p-8 lg:p-12">
      
         <p className="mt-8 text-xs font-black uppercase tracking-[0.28em] text-[var(--detail-accent)]">{categoryOf(post, 'Article')}</p>
-        <h1 className="mt-4 text-4xl font-black leading-[0.98] tracking-[-0.07em] sm:text-5xl lg:text-7xl">{post.title}</h1>
+        <h1 className="mt-4 text-4xl font-black leading-[0.98] tracking-[-0.07em] sm:text-5xl lg:text-7xl">{titleText(post)}</h1>
         {images[0] ? <img src={images[0]} alt="" className="mt-8 max-h-[620px] w-full rounded-[2rem] object-cover" /> : null}
         <BodyContent post={post} />
         <EditableComments slug={post.slug} comments={comments} />
@@ -166,7 +189,7 @@ function ListingDetail({ post, related }: { post: SitePost; related: SitePost[] 
             </div>
             <div>
               <p className="text-xs font-black uppercase tracking-[0.28em] text-[var(--detail-accent)]">Business listing</p>
-              <h1 className="mt-3 text-4xl font-black leading-[0.98] tracking-[-0.07em] sm:text-6xl">{post.title}</h1>
+              <h1 className="mt-3 text-4xl font-black leading-[0.98] tracking-[-0.07em] sm:text-6xl">{titleText(post)}</h1>
               <p className="mt-5 max-w-3xl text-base leading-8 opacity-70">{summaryText(post)}</p>
             </div>
           </div>
@@ -197,7 +220,7 @@ function ClassifiedDetail({ post, related }: { post: SitePost; related: SitePost
       <aside className="rounded-[2.5rem] border border-[var(--editable-border)] bg-[var(--detail-text)] p-7 text-[var(--detail-bg)] shadow-xl lg:sticky lg:top-24 lg:self-start">
         <BackLink task="classified" />
         <p className="mt-10 text-xs font-black uppercase tracking-[0.28em] opacity-60">Classified notice</p>
-        <h1 className="mt-4 text-4xl font-black leading-[0.98] tracking-[-0.07em] sm:text-5xl">{post.title}</h1>
+        <h1 className="mt-4 text-4xl font-black leading-[0.98] tracking-[-0.07em] sm:text-5xl">{titleText(post)}</h1>
         <div className="mt-8 grid gap-3">
           {price ? <BadgeLine label="Price" value={price} /> : null}
           {condition ? <BadgeLine label="Condition" value={condition} /> : null}
@@ -229,7 +252,7 @@ function ImageDetail({ post, related }: { post: SitePost; related: SitePost[] })
         </div>
         <aside className="border-t border-slate-200 pt-6 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0">
           <div className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.2em] text-[#0057d9]"><Camera className="h-4 w-4" /> Image story</div>
-          <h1 className="mt-5 text-4xl font-extrabold leading-tight tracking-[-0.06em]">{post.title}</h1>
+          <h1 className="mt-5 text-4xl font-extrabold leading-tight tracking-[-0.06em]">{titleText(post)}</h1>
           <p className="mt-4 text-base leading-7 text-slate-600">{summaryText(post)}</p>
           <div className="mt-6 flex gap-3">
             <button className="rounded-full bg-[#2c73d8] px-6 py-3 text-sm font-extrabold text-white">Follow</button>
@@ -259,7 +282,7 @@ function BookmarkDetail({ post, related }: { post: SitePost; related: SitePost[]
       <article className="rounded-[2.7rem] border border-[var(--editable-border)] bg-white p-7 shadow-[0_30px_90px_rgba(15,23,42,0.08)] sm:p-10">
         <BackLink task="sbm" />
         <div className="mt-10 flex h-20 w-20 items-center justify-center rounded-[2rem] bg-[var(--detail-text)] text-[var(--detail-bg)]"><Bookmark className="h-9 w-9" /></div>
-        <h1 className="mt-7 text-4xl font-black leading-[0.98] tracking-[-0.07em] sm:text-6xl">{post.title}</h1>
+        <h1 className="mt-7 text-4xl font-black leading-[0.98] tracking-[-0.07em] sm:text-6xl">{titleText(post)}</h1>
         <p className="mt-5 max-w-3xl text-lg leading-9 opacity-70">{summaryText(post)}</p>
         {website ? <Link href={website} target="_blank" rel="noreferrer" className="mt-8 inline-flex items-center gap-2 rounded-full bg-[var(--detail-text)] px-5 py-3 text-sm font-black text-[var(--detail-bg)]">Open saved resource <ExternalLink className="h-4 w-4" /></Link> : null}
         <BodyContent post={post} />
@@ -279,7 +302,7 @@ function PdfDetail({ post, related }: { post: SitePost; related: SitePost[] }) {
           <div className="flex h-28 w-28 items-center justify-center rounded-[1.8rem] bg-[var(--detail-text)] text-[var(--detail-bg)]"><FileText className="h-12 w-12" /></div>
           <div>
             <p className="text-xs font-black uppercase tracking-[0.28em] text-[var(--detail-accent)]">PDF resource</p>
-            <h1 className="mt-3 text-4xl font-black leading-[0.98] tracking-[-0.07em] sm:text-6xl">{post.title}</h1>
+            <h1 className="mt-3 text-4xl font-black leading-[0.98] tracking-[-0.07em] sm:text-6xl">{titleText(post)}</h1>
           </div>
         </div>
         <BodyContent post={post} />
@@ -311,7 +334,7 @@ function ProfileDetail({ post, related }: { post: SitePost; related: SitePost[] 
         <div className="mx-auto mt-10 flex h-40 w-40 items-center justify-center overflow-hidden rounded-full bg-slate-100 ring-1 ring-slate-200">
           {images[0] ? <img src={images[0]} alt="" className="h-full w-full object-cover" /> : <UserRound className="h-16 w-16 opacity-45" />}
         </div>
-        <h1 className="mt-6 text-4xl font-extrabold leading-tight tracking-[-0.06em]">{post.title}</h1>
+        <h1 className="mt-6 text-4xl font-extrabold leading-tight tracking-[-0.06em]">{titleText(post)}</h1>
         {role ? <p className="mt-3 text-sm font-semibold text-slate-600">{role}</p> : null}
         <button className="mt-6 rounded-full bg-[#2c73d8] px-8 py-3 text-base font-extrabold text-white">Follow</button>
        
@@ -428,7 +451,7 @@ function RelatedCard({ task, post }: { task: TaskKey; post: SitePost }) {
     <Link href={buildPostUrl(task, post.slug)} className="group flex gap-3 rounded-2xl border border-[var(--editable-border)] bg-white p-3 transition hover:-translate-y-0.5 hover:shadow-lg">
       {image && task !== 'sbm' ? <img src={image} alt="" className="h-20 w-20 shrink-0 rounded-xl object-cover" /> : <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-[var(--detail-bg)]"><FileText className="h-6 w-6 opacity-45" /></div>}
       <div className="min-w-0">
-        <h3 className="line-clamp-3 text-sm font-black leading-tight tracking-[-0.03em]">{post.title}</h3>
+        <h3 className="line-clamp-3 text-sm font-black leading-tight tracking-[-0.03em]">{titleText(post)}</h3>
         <p className="mt-2 line-clamp-2 text-xs leading-5 opacity-60">{summaryText(post)}</p>
       </div>
     </Link>
