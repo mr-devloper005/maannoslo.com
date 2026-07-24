@@ -256,11 +256,8 @@ function ImageDetail({ post, related }: { post: SitePost; related: SitePost[] })
         <aside className="border-t border-slate-200 pt-6 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0">
           <div className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.2em] text-[#0057d9]"><Camera className="h-4 w-4" /> Image story</div>
           <h1 className="mt-5 text-4xl font-extrabold leading-tight tracking-[-0.06em]">{titleText(post)}</h1>
-          <p className="mt-4 text-base leading-7 text-slate-600">{summaryText(post)}</p>
-          <div className="mt-6 flex gap-3">
-            <button className="rounded-full bg-[#2c73d8] px-6 py-3 text-sm font-extrabold text-white">Follow</button>
-            <button className="rounded-full border border-slate-300 px-6 py-3 text-sm font-extrabold">Like</button>
-          </div>
+ 
+         
           <BodyContent post={post} compact />
         </aside>
       </div>
