@@ -1,24 +1,24 @@
 import type { CSSProperties } from 'react'
 
 export const editableRootStyle = {
-  '--slot4-page-bg': '#ffffff',
-  '--slot4-page-text': '#111111',
-  '--slot4-panel-bg': '#f7f8fa',
-  '--slot4-surface-bg': '#ffffff',
-  '--slot4-muted-text': '#4b5563',
-  '--slot4-soft-muted-text': '#6b7280',
-  '--slot4-accent': '#0057d9',
-  '--slot4-accent-fill': '#2d73e5',
-  '--slot4-accent-soft': '#eaf4ff',
-  '--slot4-dark-bg': '#111111',
-  '--slot4-dark-text': '#ffffff',
-  '--slot4-media-bg': '#eef0f3',
-  '--slot4-cream': '#ffffff',
-  '--slot4-warm': '#ffffff',
-  '--slot4-lavender': '#f4f8ff',
-  '--slot4-gray': '#f7f8fa',
-  '--slot4-border': '#e6e8ec',
-  '--slot4-body-gradient': 'linear-gradient(180deg, #ffffff 0%, #ffffff 60%, #f8fafc 100%)',
+  '--slot4-page-bg': '#FBFADA',
+  '--slot4-page-text': '#12372A',
+  '--slot4-panel-bg': '#f3f2e4',
+  '--slot4-surface-bg': '#FBFADA',
+  '--slot4-muted-text': '#436850',
+  '--slot4-soft-muted-text': '#ADBC9F',
+  '--slot4-accent': '#436850',
+  '--slot4-accent-fill': '#436850',
+  '--slot4-accent-soft': '#e8eed5',
+  '--slot4-dark-bg': '#12372A',
+  '--slot4-dark-text': '#FBFADA',
+  '--slot4-media-bg': '#e8eed5',
+  '--slot4-cream': '#FBFADA',
+  '--slot4-warm': '#FBFADA',
+  '--slot4-lavender': '#f0f3e6',
+  '--slot4-gray': '#f3f2e4',
+  '--slot4-border': '#ADBC9F',
+  '--slot4-body-gradient': 'linear-gradient(180deg, #FBFADA 0%, #FBFADA 60%, #f3f2e4 100%)',
 } as CSSProperties
 
 export const editablePalette = {
@@ -41,11 +41,11 @@ export const editablePalette = {
   warmBg: 'bg-[var(--slot4-warm)]',
   lavenderBg: 'bg-[var(--slot4-lavender)]',
   grayBg: 'bg-[var(--slot4-gray)]',
-  border: 'border-black/[0.08]',
+  border: 'border-[#ADBC9F]/40',
   darkBorder: 'border-white/10',
-  shadow: 'shadow-[0_12px_40px_rgba(0,0,0,0.08)]',
-  shadowStrong: 'shadow-[0_18px_70px_rgba(0,0,0,0.14)]',
-  overlay: 'bg-[linear-gradient(180deg,rgba(0,0,0,0.02),rgba(0,0,0,0.62))]',
+  shadow: 'shadow-[0_12px_40px_rgba(18,55,42,0.08)]',
+  shadowStrong: 'shadow-[0_18px_70px_rgba(18,55,42,0.14)]',
+  overlay: 'bg-[linear-gradient(180deg,rgba(18,55,42,0.02),rgba(18,55,42,0.62))]',
 } as const
 
 export const editableDesignContract = {
@@ -81,7 +81,7 @@ export const editableDesignContract = {
     ratio: 'aspect-[2/3]',
   },
   motion: {
-    lift: 'transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_55px_rgba(0,0,0,0.14)]',
+    lift: 'transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_55px_rgba(18,55,42,0.14)]',
     fade: 'transition duration-300 hover:opacity-80',
   },
 } as const
